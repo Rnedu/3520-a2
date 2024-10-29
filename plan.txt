@@ -1,0 +1,13 @@
+take all the stuff
+
+1-> if arrival time <= actual time. enqueue them
+
+if currently running process
+if level 0 work
+if level 1 work check if level 0 has anything
+if level 2 work check if level 0 or 1 has anything
+
+
+
+
+if arrived 
