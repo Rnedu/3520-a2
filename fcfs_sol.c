@@ -23,6 +23,7 @@ int main (int argc, char *argv[])
     PcbPtr job_queue = NULL;
     PcbPtr current_process = NULL;
     PcbPtr process = NULL;
+    PcbPtr temp_process = NULL;
 
     int t0, t1, t2, W; //custom
     int timer = 0;
@@ -116,10 +117,12 @@ int main (int argc, char *argv[])
                     break;
                 case 1:
                     process-> remaining_quantum_time = t1;
+                    process-> queue_arrival_time = timer;
                     queue_1 = enqPcb(queue_1, process);
                     break;
                 case 2:
                     process-> remaining_quantum_time = t2;
+                    process-> queue_arrival_time = timer;
                     queue_2 = enqPcb(queue_2, process);
                     break;
                 default:
@@ -144,6 +147,7 @@ int main (int argc, char *argv[])
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
                     current_process-> remaining_quantum_time = t1;
+                    current_process-> queue_arrival_time = timer;
                     queue_1 = enqPcb(queue_1, current_process);
                     printf("Process: %d SUSPENDED\n", (int) current_process -> pid);
                     current_process = NULL;
@@ -161,6 +165,7 @@ int main (int argc, char *argv[])
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
                     current_process-> remaining_quantum_time = t2;
+                    current_process-> queue_arrival_time = timer;
                     queue_2 = enqPcb(queue_2, current_process);
                     printf("Process: %d SUSPENDED\n", (int) current_process -> pid);
                     current_process = NULL;
@@ -178,6 +183,7 @@ int main (int argc, char *argv[])
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
                     current_process-> remaining_quantum_time = t2;
+                    current_process-> queue_arrival_time = timer;
                     queue_2 = enqPcb(queue_2, current_process);
                     printf("Process: %d SUSPENDED\n", (int) current_process -> pid);
                     current_process = NULL;
@@ -212,7 +218,6 @@ int main (int argc, char *argv[])
 
         //check if there exists a process in the level 1 queue
         else if(queue_1){
-            //if no current process running we set the rr_flag to true. This flag will be later used
             if(!current_process){
                 current_process = deqPcb(&queue_1);
                 startPcb(current_process);
@@ -235,6 +240,47 @@ int main (int argc, char *argv[])
                 current_process = deqPcb(&queue_2);
                 startPcb(current_process);
             }
+        }
+
+        /**
+         * This section onwards would be the Accumulated waiting time
+         * NOTE: You might have to move this under the timer increment, TEST IT
+         * NOTE: SINCE WE DONT HAVe TO STOP THE PROCESS WE JUST HAVE TO EnQUEUe it, this should be right
+         * 
+         * when accumulated waiting time>= W then we deque the queue one by one and upgrading it respectively
+         */
+        if (queue_1){
+            int accumulated_waiting_time = timer - (int)queue_1->queue_arrival_time;
+            if (accumulated_waiting_time >= W){
+                printf("queue 1 front waiting time %d\n", accumulated_waiting_time);
+                while (queue_1){
+                    temp_process = deqPcb(&queue_1);
+                    temp_process -> queue_arrival_time = timer;
+                    queue_0 = enqPcb(queue_0, temp_process);
+                    temp_process = NULL;
+                }
+                //OPTIONAL: queue_1 = NULL;
+                while (queue_2){
+                    temp_process = deqPcb(&queue_2);
+                    temp_process -> queue_arrival_time = timer;
+                    queue_0 = enqPcb(queue_0, temp_process);
+                    temp_process = NULL;
+                }
+                //OPTIONAL: queue_2 = NULL;
+            }
+        }
+        if (queue_2){
+            int accumulated_waiting_time = timer - (int)queue_2->queue_arrival_time;
+            if (accumulated_waiting_time >= W){
+                printf("queue 2 front waiting time %d\n", accumulated_waiting_time);
+                while (queue_2){
+                    temp_process = deqPcb(&queue_2);
+                    temp_process -> queue_arrival_time = timer;
+                    queue_0 = enqPcb(queue_0, temp_process);
+                    temp_process = NULL;
+                }
+            }
+            //OPTIONAL: queue_2 = NULL;
         }
 
 

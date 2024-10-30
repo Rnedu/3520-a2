@@ -37,6 +37,7 @@ struct pcb {
     int remaining_quantum_time; //custom
     int status;
     int queue_priority; //CUSTOME
+    int queue_arrival_time; //Custom
     struct pcb * next;
 };
 
