@@ -28,6 +28,8 @@ PcbPtr createnullPcb()
     new_process_Ptr->status = PCB_UNINITIALIZED;
     new_process_Ptr->next = NULL;
     new_process_Ptr->queue_priority = -1;
+    new_process_Ptr->queue_arrival_time = -1;
+    new_process_Ptr-> first_time = TRUE;
     return new_process_Ptr;
 }
 

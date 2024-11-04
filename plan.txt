@@ -11,3 +11,15 @@ if level 2 work check if level 0 or 1 has anything
 
 
 if arrived 
+
+
+When the waiting time of the First job in front of the Level-1 queue is >= to W units of time since it is placed at the end of the Level-1 queue, 
+all jobs in Level-1 and Level-2 queues are moved to the end (or tail) of the Level-0 queue. 
+Level-1 jobs are placed before Level-2 jobs and jobs at the same level will maintain their order.
+
+
+if a level 1 or 2 process is running and they get suspended due to a higher level process, does the waiting time reset
+
+
+
+YOU HAVE TO STOP THE CURRENT PROCESS
