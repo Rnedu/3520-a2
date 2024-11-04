@@ -141,12 +141,13 @@ int main (int argc, char *argv[])
 
                 if (current_process->remaining_cpu_time <= 0){
                     terminatePcb(current_process);
+                    av_turnaround_time += (timer - current_process ->arrival_time);
+                    av_wait_time += ((timer - current_process ->arrival_time)-current_process ->service_time);
                     printf("Process: %d TERMINATED\n", (int) current_process -> pid);
                     free(current_process);
                     current_process = NULL;
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
-                    current_process->status = PCB_SUSPENDED;
                     current_process->queue_priority = 1;
                     current_process-> remaining_quantum_time = t1;
                     current_process-> queue_arrival_time = timer;
@@ -161,12 +162,13 @@ int main (int argc, char *argv[])
 
                 if (current_process->remaining_cpu_time <= 0){
                     terminatePcb(current_process);
+                    av_turnaround_time += (timer - current_process ->arrival_time);
+                    av_wait_time += ((timer - current_process ->arrival_time)-current_process ->service_time);
                     printf("Process: %d TERMINATED\n", (int) current_process -> pid);
                     free(current_process);
                     current_process = NULL;
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
-                    current_process->status = PCB_SUSPENDED;
                     current_process->queue_priority = 2;
                     current_process-> remaining_quantum_time = t2;
                     current_process-> queue_arrival_time = timer;
@@ -181,12 +183,13 @@ int main (int argc, char *argv[])
 
                 if (current_process->remaining_cpu_time <= 0){
                     terminatePcb(current_process);
+                    av_turnaround_time += (timer - current_process ->arrival_time);
+                    av_wait_time += ((timer - current_process ->arrival_time)-current_process ->service_time);
                     printf("Process: %d TERMINATED\n", (int) current_process -> pid);
                     free(current_process);
                     current_process = NULL;
                 } else if (current_process->remaining_quantum_time<=0){
                     suspendPcb(current_process);
-                    current_process->status = PCB_SUSPENDED;
                     current_process->queue_priority = 2;
                     current_process-> remaining_quantum_time = t2;
                     current_process-> queue_arrival_time = timer;
@@ -205,6 +208,10 @@ int main (int argc, char *argv[])
             //if there exists no process currently, then take the process at the top
             if(!current_process){
                 current_process = deqPcb(&queue_0);
+                if (current_process -> first_time == TRUE){
+                    av_response_time += (timer - current_process-> queue_arrival_time);
+                    current_process -> first_time = FALSE;
+                }
                 startPcb(current_process);
             }
 
@@ -212,13 +219,16 @@ int main (int argc, char *argv[])
             else if (current_process->queue_priority == 1 || current_process->queue_priority == 2) {
                 printf("PRE EMPTING THE PROCESS: %d\n", (int)current_process->pid);
                 suspendPcb(current_process);
-                current_process->status = PCB_SUSPENDED;
                 if (current_process->queue_priority == 1) {
                     queue_1 = addFrontPcb(&queue_1, current_process);
                 } else {
                     queue_2 = addFrontPcb(&queue_2, current_process);
                 }
                 current_process = deqPcb(&queue_0);
+                if (current_process -> first_time == TRUE){
+                    av_response_time += (timer - current_process-> queue_arrival_time);
+                    current_process -> first_time = FALSE;
+                }
                 startPcb(current_process);
             }
         }
@@ -227,7 +237,10 @@ int main (int argc, char *argv[])
         else if(queue_1){
             if(!current_process){
                 current_process = deqPcb(&queue_1);
-                current_process->status = PCB_RUNNING;
+                if (current_process -> first_time == TRUE){
+                    av_response_time += (timer - current_process-> queue_arrival_time);
+                    current_process -> first_time = FALSE;
+                }
                 startPcb(current_process);
             }
 
@@ -235,10 +248,12 @@ int main (int argc, char *argv[])
             else if(current_process->queue_priority == 2){
                 printf("PRE EMPTING THE PROCESS: %d\n", (int)current_process->pid);
                 suspendPcb(current_process);
-                current_process->status = PCB_SUSPENDED;
                 queue_2 = addFrontPcb(&queue_2, current_process);
                 current_process = deqPcb(&queue_1);
-                current_process->status = PCB_RUNNING;
+                if (current_process -> first_time == TRUE){
+                    av_response_time += (timer - current_process-> queue_arrival_time);
+                    current_process -> first_time = FALSE;
+                }
                 startPcb(current_process);
             }
 
@@ -248,7 +263,10 @@ int main (int argc, char *argv[])
         else if(queue_2){
             if(!current_process){
                 current_process = deqPcb(&queue_2);
-                current_process->status = PCB_RUNNING;
+                if (current_process -> first_time == TRUE){
+                    av_response_time += (timer - current_process-> queue_arrival_time);
+                    current_process -> first_time = FALSE;
+                }
                 startPcb(current_process);
             }
         }
@@ -263,7 +281,7 @@ int main (int argc, char *argv[])
         if (queue_1){
             int accumulated_waiting_time = timer - (int)queue_1->queue_arrival_time;
             if (accumulated_waiting_time >= W){
-                printf("queue 1 front waiting time %d\n", accumulated_waiting_time);
+                printf("Queue 1 upgraded to end of Queue 0\n");
                 while (queue_1){
                     temp_process = deqPcb(&queue_1);
                     temp_process -> queue_arrival_time = timer;
@@ -287,7 +305,7 @@ int main (int argc, char *argv[])
         if (queue_2){
             int accumulated_waiting_time = timer - (int)queue_2->queue_arrival_time;
             if (accumulated_waiting_time >= W){
-                printf("queue 2 front waiting time %d\n", accumulated_waiting_time);
+                printf("Queue 2 upgraded to end of Queue 0\n");
                 while (queue_2){
                     temp_process = deqPcb(&queue_2);
                     temp_process -> queue_priority = 0;

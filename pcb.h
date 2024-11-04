@@ -38,6 +38,7 @@ struct pcb {
     int status;
     int queue_priority; //CUSTOME
     int queue_arrival_time; //Custom
+    int first_time; //Custom
     struct pcb * next;
 };
 
